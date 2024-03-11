@@ -88,6 +88,7 @@ class Player(Agent):
         )
 
         self.backend = backend
+        self.context = [{"role": "USER", "message": role_desc}]
 
     def to_config(self) -> AgentConfig:
         return AgentConfig(
@@ -113,6 +114,7 @@ class Player(Agent):
                 role_desc=self.role_desc,
                 history_messages=observation,
                 global_prompt=self.global_prompt,
+                context=self.context,
                 request_msg=None,
             )
         except RetryError as e:

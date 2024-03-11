@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Union
 
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
@@ -60,23 +60,27 @@ class CohereAIChat(IntelligenceBackend):
         self.session_id = None
         self.last_msg_hash = None
 
-    @retry(stop=stop_after_attempt(6), wait=wait_random_exponential(min=1, max=60))
-    def _get_response(self, new_message: str, persona_prompt: str):
+    @retry(stop=stop_after_attempt(2), wait=wait_random_exponential(min=1, max=60))
+    def _get_response(self, new_message: str, persona_prompt: Union[dict]):
+
+        print("chat_history:", persona_prompt)
+
         response = self.client.chat(
             new_message,
-            persona_prompt=persona_prompt,
+            chat_history=persona_prompt,
             temperature=self.temperature,
             max_tokens=self.max_tokens,
-            session_id=self.session_id,
+            conversation_id=self.session_id,
         )
 
-        self.session_id = response.session_id  # Update the session id
-        return response.reply
+        self.session_id = response.conversation_id  # Update the session id
+        return response.text
 
     def query(
         self,
         agent_name: str,
         role_desc: str,
+        context: str,
         history_messages: List[Message],
         global_prompt: str = None,
         request_msg: Message = None,
@@ -117,8 +121,30 @@ class CohereAIChat(IntelligenceBackend):
 
         # Concatenate all new messages into one message because the Cohere API only accepts one message
         new_message = "\n".join(new_conversations)
-        persona_prompt = f"Environment:\n{global_prompt}\n\nYour role:\n{role_desc}"
 
+        persona_prompt = [
+            {"": f"Environment:\n{global_prompt}\n\nYour role:\n{role_desc}"}
+        ]
+        # print("context:", context)
+        # persona_prompt = context
+        # for message in history_messages:
+        #     persona_prompt.append(message.message_dict)
+        # print("persona_prompt at query:", persona_prompt)
+
+        print("context:", context)
+        persona_prompt = context.copy()
+        for message_dict in history_messages:
+            persona_prompt.append(message_dict)
+        print("persona_prompt at query:", persona_prompt)
+
+        persona_prompt = [
+            {"role": "USER", "message": "Who discovered gravity?"},
+            {
+                "role": "CHATBOT",
+                "message": "The man who is widely credited with \
+            discovering gravity is Sir Isaac Newton",
+            },
+        ]
         response = self._get_response(new_message, persona_prompt)
 
         # Only update the last message hash if the API call is successful

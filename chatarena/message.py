@@ -36,15 +36,23 @@ class Message:
         visible_to (Union[str, List[str]]): The receivers of the message. Can be a single agent, multiple agents, or 'all'. Defaults to 'all'.
         msg_type (str): Type of the message, e.g., 'text'. Defaults to 'text'.
         logged (bool): Whether the message is logged in the database. Defaults to False.
+
+        cohere_agent (str): CHATBOT or USER
     """
 
     agent_name: str
     content: str
     turn: int
+    cohere_agent: str
     timestamp: int = time.time_ns()
     visible_to: Union[str, List[str]] = "all"
     msg_type: str = "text"
     logged: bool = False  # Whether the message is logged in the database
+
+    def __post_init__(self):
+        # print("post init!")
+        self.message_dict = [{"role": self.cohere_agent, "message": self.content}]
+        # print("self.message_dict:", self.message_dict)
 
     @property
     def msg_hash(self):
@@ -66,9 +74,9 @@ class MessagePool:
     def __init__(self):
         """Initialize the MessagePool with a unique conversation ID."""
         self.conversation_id = str(uuid1())
-        self._messages: List[
-            Message
-        ] = []  # TODO: for the sake of thread safety, use a queue instead
+        self._messages: List[Message] = (
+            []
+        )  # TODO: for the sake of thread safety, use a queue instead
         self._last_message_idx = 0
 
     def reset(self):
