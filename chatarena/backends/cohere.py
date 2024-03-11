@@ -137,7 +137,7 @@ class CohereAIChat(IntelligenceBackend):
         print("context:", context)
         persona_prompt = context.copy()
         for message in history_messages:
-            persona_prompt.append(message.message_dict)
+            persona_prompt += message.message_dict
         print("persona_prompt at query:", persona_prompt)
 
         # persona_prompt = [
