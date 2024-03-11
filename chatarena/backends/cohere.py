@@ -140,14 +140,14 @@ class CohereAIChat(IntelligenceBackend):
             persona_prompt.append(message_dict)
         print("persona_prompt at query:", persona_prompt)
 
-        persona_prompt = [
-            {"role": "USER", "message": "Who discovered gravity?"},
-            {
-                "role": "CHATBOT",
-                "message": "The man who is widely credited with \
-            discovering gravity is Sir Isaac Newton",
-            },
-        ]
+        # persona_prompt = [
+        #     {"role": "USER", "message": "Who discovered gravity?"},
+        #     {
+        #         "role": "CHATBOT",
+        #         "message": "The man who is widely credited with \
+        #     discovering gravity is Sir Isaac Newton",
+        #     },
+        # ]
         response = self._get_response(new_message, persona_prompt)
 
         # Only update the last message hash if the API call is successful
