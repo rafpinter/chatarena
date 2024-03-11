@@ -61,9 +61,12 @@ class CohereAIChat(IntelligenceBackend):
         self.last_msg_hash = None
 
     @retry(stop=stop_after_attempt(2), wait=wait_random_exponential(min=1, max=60))
-    def _get_response(self, new_message: str, persona_prompt: Union[dict]):
+    def _get_response(
+        self, new_message: str, persona_prompt: Union[dict], verbose=False
+    ):
 
-        print("chat_history:", persona_prompt)
+        if verbose:
+            print("chat_history:", persona_prompt)
 
         response = self.client.chat(
             new_message,
